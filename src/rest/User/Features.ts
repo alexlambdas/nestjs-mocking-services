@@ -1,3 +1,4 @@
+import { HttpExceptionFilterType, HttpExceptionType } from "./CommonTypes.types";
 import { UserType } from "./User.type";
 
 //
@@ -38,10 +39,58 @@ function addUser(dataIn: UserType[], newUser: UserType): UserType[]{
   return dataIn;
 }
 
+//
+function reduceMessage(prev: string, current: string): string {
+  if(prev === '') return `${current}`;
+  else return `${prev} && ${current}`;
+}
+
+//
+function getMsgExceptionFilterDefault(message: string | [string]): string{
+    
+  if(Array.isArray(message)){
+    return message.reduce((prev, current) => reduceMessage(prev,current), '');
+  }
+  else return message;
+}
+
+function getTimeZone(date: Date): string{
+
+  const gmtZuluDate = date;
+  const year = gmtZuluDate.getFullYear();
+  const month = gmtZuluDate.getMonth();
+  const day = gmtZuluDate.getDate();
+  const hours = gmtZuluDate.getHours() - 5;
+  const minutes = gmtZuluDate.getMinutes();
+  const seconds = gmtZuluDate.getSeconds();
+  const gmt05Date = new Date(year, month, day, hours, minutes, seconds);
+
+  //
+  return gmt05Date.toISOString().split(".")[0];
+}
+
+//
+function buildDefaultHttpException(exceptionResponse: HttpExceptionFilterType): HttpExceptionType{
+  return{
+    fault: {
+      statusCode: exceptionResponse.statusCode,
+      error: exceptionResponse.error,
+      message: getMsgExceptionFilterDefault(exceptionResponse.message),
+      date: getTimeZone(new Date()),
+      layer: 'CONTROLLER',
+    }
+  }
+}
+
 export default {
   getById,
   getByParams,
   deleteOne,
   updateOne,
   addUser,
+  buildDefaultHttpException,
+  getTimeZone,
+  getMsgExceptionFilterDefault,
+  reduceMessage,
+
 }

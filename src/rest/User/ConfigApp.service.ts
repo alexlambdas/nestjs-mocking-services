@@ -1,6 +1,7 @@
 import { UserType } from "./User.type";
 import { users } from "./FakeDataUsers";
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class ConfigAppService {
@@ -10,11 +11,14 @@ export class ConfigAppService {
   private transactionid: string;
   private verb: string;
   private urlApi: string;
+  private urlBackend: string;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.data = users;
     this.length = users.length;
     this.transactionid = '';
+    this.urlBackend = this.configService.get<string>('NODE_ENV_URL_BACK_END');
+
   }
 
   getLenth = (): number => this.length;
@@ -29,4 +33,13 @@ export class ConfigAppService {
 
   getUrlApi = (): string => this.urlApi;
   setUrlApi = (urlApi: string) => this.urlApi = urlApi;
+
+  /**
+   * 
+   * @description
+   * Enviroment variables of the application
+   * 
+   */
+
+  getUrlBackend = (): string => this.urlBackend;
 }

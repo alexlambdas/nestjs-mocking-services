@@ -1,11 +1,13 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, InternalServerErrorException, NotFoundException, Param, Post, Put, Query, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { ConfigAppService } from './ConfigApp.service';
 import { PayloadUserDto } from './PayloadUser.dto';
 import { QueryUserDto } from './QueryUser.dto';
 import { ResponseDto } from './Response.dto';
 import Features from './Features';
+import { HttpFilterException } from './HttpFilter.exception';
 
 @Controller('/nestjs/mocking/services/rest/users')
+@UseFilters(HttpFilterException)
 export class UserController {
 
   constructor(private configApp: ConfigAppService) {}
@@ -20,16 +22,32 @@ export class UserController {
   @Get()
   async getByParams(@Query() bodyIn: QueryUserDto): Promise<ResponseDto>{
 
-    const getUserByParams: PayloadUserDto[] = Features.getByParams(this.configApp.getData(), bodyIn);
+    try{
+      
+      if(Number(bodyIn.id) === 5000){
+        throw (5000);
+      }
+      
+      const getUserByParams: PayloadUserDto[] = Features.getByParams(this.configApp.getData(), bodyIn);
 
-    const response: ResponseDto = {
-      statusCode: 200,
-      statusMessage: 'ok',
-      descriptionMessage: 'user found',
-      response: getUserByParams,
-    };
+      const response: ResponseDto = {
+        statusCode: 200,
+        statusMessage: 'ok',
+        descriptionMessage: 'user found',
+        response: getUserByParams,
+      };
 
-    return response;
+      return response;
+    }
+    catch(err){
+
+      if(err === 5000){
+        throw new NotFoundException()
+      }
+
+      throw new InternalServerErrorException();
+      
+    }
   }
 
 
